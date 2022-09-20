@@ -48,14 +48,19 @@ public class CustomerController {
 
     @PostMapping
     public ResponseEntity<CustomerDto> create(@RequestBody @Valid CustomerDto clientDto){
+
+        URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(iClientService.create(convertDtoToEntity(clientDto)).getId()).toUri();
+        
+        AWSSNSController sns = new AWSSNSController();
+        sns.addSubscriptionToSNSTopic(clientDto.getEmail());
+        sns.subTextSNS(clientDto.getPhone());
+
         URI uri = ServletUriComponentsBuilder
                 .fromCurrentRequest()
                 .path("/{id}")
                 .buildAndExpand(customerService.create(convertDtoToEntity(clientDto)).getId()).toUri();
 
-        String email = "teste@teste.com";
-        AWSSNSController.addSubscriptionToSNSTopic(email);
-        AWSSNSController.subTextSNS(clientDto.getPhone());
+      
         return ResponseEntity.created(uri).build();
     }
 
